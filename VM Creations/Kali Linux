@@ -32,7 +32,7 @@
       - Select desired RAM (8192)
       - Click next
     * Network Tab
-      - Left all default
+      - Changed bridge to vmbr0
       - Click next
     * Confirm Tab
       - Make sure it all looks correct and click confirm
@@ -41,7 +41,7 @@
   - Choose installation type (graphical install)
   - Pick language and location (English, U.S.)
   - Pick Keyboard type (American English)
-  - paused at network
+  - 
 
 
 
