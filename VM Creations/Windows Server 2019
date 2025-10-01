@@ -1,1 +1,15 @@
-
+# Windows Server 2019 VM Creation
+1. Install the required ISOs to local machine, in this case ISOs needed: Windows Server 2019 and virti0-win (for functionality)
+  - Got Windows Server ISO from https://www.microsoft.com/en-us/evalcenter/download-windows-server-2019
+  - Got virtio-win from https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.285-1/virtio-win.iso 
+2. Create the VM
+  - selected the desired node for installation (devops-nitrogen)
+  - Right click the chosen node and select create VM or go to top right and select create VM button
+  - Proceed through the installation options:
+    * General Tab
+      - Select node (devops-nitrogen)
+      - Select VM ID (1045)
+      - Select Name for VM (MercerWin2019)
+      - Select resource pool (Interns)
+    * OS Tab
+      - 
