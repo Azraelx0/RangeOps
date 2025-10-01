@@ -1,4 +1,4 @@
-# Kali Linux VM Creation
+ # Kali Linux VM Creation
 ## Initial Setup
 1. Install the required ISO local machine
   - Navigated to https://www.kali.org/get-kali/#kali-installer-images
@@ -41,7 +41,14 @@
   - Choose installation type (graphical install)
   - Pick language and location (English, U.S.)
   - Pick Keyboard type (American English)
-  - 
+  - Set hostname mercer-kali
+  - Set Names/Password
+  - Set clock
+  - Partition Disks, used whole disk
+  - Chose all files in one partition
+  - Choose environment (xfce)
+
+
 
 
 
