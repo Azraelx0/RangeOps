@@ -8,8 +8,37 @@
   - Proceed through the installation options:
     * General Tab
       - Select node (devops-nitrogen)
-      - Select VM ID (1045)
+      - Select VM ID (1046)
       - Select Name for VM (MercerWin2019)
       - Select resource pool (Interns)
+      - Click next
     * OS Tab
-      - 
+      - Select local storage
+      - Select ISO (SERVER_EVAL_x64FRE_en-us.iso)
+      - Select type as Microsoft Windows
+      - Select version 10/2016/2019
+      - Check the box for Add additional drive for VirtIO drivers
+      - Choose local storage
+      - Select virtio-win-0.1.285.iso
+      - Click next
+    * System Tab
+      - Leave all default
+      - Click next    
+    * Disks Tab
+      - Confirmed correct bus storage
+      - Choose storage local
+      - Choose desired amount of storage (60gb)
+      - Click next
+    * CPU Tab
+      - Chose 1 socket
+      - 4 cores
+      - type x86-64-v2-AES
+      - Click next
+    * Memory Tab
+      - Choose desired RAM (8192)
+      - Click next
+    * Network Tab
+      - Changed bridge to vmbr0
+      - Click next
+    * Confirm Tab
+      - Confirm settings and hit finish
