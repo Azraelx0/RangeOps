@@ -45,3 +45,9 @@
 3. Windows Installation
   - Proceed through the installtion wizard
   - When prompted to choose where to install windows went to vioscsi > 2k19 > amd64
+* Virti0 setup
+  - Open file explorer
+  - Go to this pc > virtio-win drive > open drive and select virtio-win-gt-x64
+  - Go through the wizard and always select vioscsi when possible
+4. Complete
+
