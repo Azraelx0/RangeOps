@@ -1,0 +1,16 @@
+# Creating Kali Template within Proxmox
+1. Remove unique identifiers and system-specific data:
+- Remove ssh host keys: sudo rm /etc/ssh/ssh_host_*
+- Remove machine id: sudo rm /etc/machine-id
+- Remove apt cache: sudo apt clean
+2. Remove user-specific data:
+- Remove user acc and data: sudo rm -r /home/*
+  - Exit current terminal, if terminal command history still shows run
+    - Clear terminal history: sudo history -c && history -w
+3. Perform final system cleanup:
+- Make sure QEMU guest agent is installed, if not run: sudo apt install qemu-guest-agent
+- Make sure system is up-to-date: sudo apt upgrade && sudo apt full-upgrade -y
+4. Make Template
+- In Proxmox make sure VM is powered off
+- Select VM and right click
+- Click convert to template
