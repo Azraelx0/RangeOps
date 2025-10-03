@@ -37,4 +37,23 @@ default creds vyos/vyos
     * Confirm Tab
       - Make sure it all looks correct and click confirm
 2. VyOS setup
-
+Note: Every change made needs to be committed using commit command. If changes work as they should use save to save the config.
+- From VyOS terminal 
+- configure command 
+* Set interface(s)
+- set interfaces ethernet "adapter" address dhcp
+- set interfaces ethernet "adapter" description 'description'
+- set interfaces ethernet "adapter" address 'ip address' (remember the cidr)
+* Firewall Rules
+- Must point traffic from private range to WAN gateway
+- Configure NAT, next-hop, and public dns
+  - Set DNS: set system name-server 8.8.8.8 (google)
+  - set nat source rule "number" outbound-interface name 'eth0'
+  - set nat source rule "number" source address '192.168.0.0/24'
+  - set nat source rule "number" translation address masquerade
+  - Configure next hop: set protocols static route 192.168.0.0/24 next-hop ip address
+- Create Firewall Groups (easier config and management)
+  - set firewall group interface-group WAN interface eth0
+  - set firewall group interface-group LAN interface eth1
+  - set firewall group network-group NET-INSIDE-v4 network '192.168.0.0/24'
+* at this point can ping eth0 gateway and hosts on it, can't connect to internet.
