@@ -44,6 +44,11 @@ Note: Every change made needs to be committed using commit command. If changes w
 - set interfaces ethernet "adapter" address dhcp
 - set interfaces ethernet "adapter" description 'description'
 - set interfaces ethernet "adapter" address 'ip address' (remember the cidr)
+DHCP Pool setup
+- Set pool
+- Set gateway
+- Set DNS
+(Didn't have to do this part only NAT Part)
 * Firewall Rules
 - Must point traffic from private range to WAN gateway
 - Configure NAT, next-hop, and public dns
