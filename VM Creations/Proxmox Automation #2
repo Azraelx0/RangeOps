@@ -4,3 +4,6 @@ For each user in the roster file, you must:
 2. Assign the user permissions to access their new pool
 3. Clone the template listed in the class file as a linked clone, rename it to the students name, and add the VM to the user's respective pool. You should also place all vms for this assignment on the "intern-net" bridge.
 If all goes well, then you should have a couple new pools on the nitrogen host with your *class name/students/student name-pool*, and in each of these pools will be the cloned VM of the template from your yaml file. These vms will all get DHCP addresses from the Intern-fw VyOS gateway! 
+
+Get-Content -Path "Path to course file" | ConvertFrom-Yaml (only need to convert on the courses)
+Get-Content -Path "Path to roster file"
