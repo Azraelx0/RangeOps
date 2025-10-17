@@ -1,3 +1,41 @@
 $pveServer = "your-proxmox-host:8006"
 $tokenUser = "your-user@pam!your-token"
 $tokenSecret = "your-token-secret"
+
+Install-Module -Name Corsinvest.ProxmoxVE.API
+Connect-PveCluster -HostAndPort "192.168.1.100:8006" -Username "" -Password ""
+
+# --- Clone Configuration Variables ---
+$sourceVmid =  # The ID of the template you are cloning from
+$targetNode = "Nitrogen" # Host to deploy to
+$newVmid =  # ID for the new VM
+$newVmName = "mercer-testvm"
+$storage = "NFS-PVEVM" # The storage to use for the new VM's delta disk
+$full = 0 # 0 for a linked clone, 1 for a full clone
+
+# --- Authentication Header ---
+$pveHeader = @{
+    "Authorization" = "PVEAPIToken=$tokenUser=$tokenSecret"
+}
+# --- Build the API URL and Body ---
+$url = "https://$pveServer/api2/json/nodes/$targetNode/qemu/$sourceVmid/clone"
+$body = @{
+    newid = $newVmid
+    name = $newVmName
+    target = $targetNode
+    full = $full
+    storage = $storage
+}
+# --- Execute the Clone Operation ---
+try {
+    Write-Host "Cloning template '$sourceVmid' to host '$targetNode'..."
+    $response = Invoke-RestMethod -Uri $url -Method Post -Headers $pveHeader -Body $body -ContentType "application/x-www-form-urlencoded"
+    
+    if ($response.data -eq $null) {
+        Write-Host "Clone task started successfully."
+    } else {
+        Write-Host "Clone task successful. Task ID: $($response.data)"
+    }
+} catch {
+    Write-Error "Error during clone operation: $($_.Exception.Message)"
+}
