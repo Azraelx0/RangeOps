@@ -1,14 +1,14 @@
-$pveServer = "your-proxmox-host:8006"
-$tokenUser = "your-user@pam!your-token"
-$tokenSecret = "your-token-secret"
+$pveServer = "192.168.1.100:8006"
+$tokenUser = "Intern-API@pve!InternToken"
+$tokenSecret = "20793bd9-6b57-4c6f-8687-90eeb2bec3bf"
 
 Install-Module -Name Corsinvest.ProxmoxVE.API
 Connect-PveCluster -HostAndPort "192.168.1.100:8006" -Username "" -Password ""
 
 # --- Clone Configuration Variables ---
-$sourceVmid =  # The ID of the template you are cloning from
+$sourceVmid = 1046 # The ID of the template you are cloning from
 $targetNode = "Nitrogen" # Host to deploy to
-$newVmid =  # ID for the new VM
+$newVmid = 1049 # ID for the new VM
 $newVmName = "mercer-testvm"
 $storage = "NFS-PVEVM" # The storage to use for the new VM's delta disk
 $full = 0 # 0 for a linked clone, 1 for a full clone
