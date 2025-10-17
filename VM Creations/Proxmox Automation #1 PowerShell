@@ -1,0 +1,3 @@
+$pveServer = "your-proxmox-host:8006"
+$tokenUser = "your-user@pam!your-token"
+$tokenSecret = "your-token-secret"
