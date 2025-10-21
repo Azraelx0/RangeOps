@@ -63,9 +63,9 @@ set service dns forwarding name-server 8.8.8.8
 - Configure NAT, next-hop, and public dns
   - Set DNS: set system name-server 8.8.8.8 (google)
   - set nat source rule "number" outbound-interface name 'eth0'
-  - set nat source rule "number" source address '192.168.0.0/24'
+  - set nat source rule "number" source address '192.168.1.0/24'
   - set nat source rule "number" translation address masquerade
-  - Configure next hop: set protocols static route 192.168.0.0/24 next-hop ip address
+  - Configure next hop: set protocols static route 192.168.1.0/24 next-hop ip address
 - Create Firewall Groups (easier config and management)
   - set firewall group interface-group WAN interface eth0
   - set firewall group interface-group LAN interface eth1
