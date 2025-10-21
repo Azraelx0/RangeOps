@@ -53,7 +53,7 @@ set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 st
 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 stop '192.168.1.254'
 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 subnet-id '1'
 - Set DNS
-set service dns forwarding listen-on 192.168.1.1
+set service dns forwarding listen-address 192.168.1.1
 set service dns forwarding allow-from 192.168.1.0/24
 set service dns forwarding name-server 8.8.8.8
 
