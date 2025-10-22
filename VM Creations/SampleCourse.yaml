@@ -1,0 +1,43 @@
+# A sample course yaml file to test deployment script
+ALL:
+  # The name of the field i.e. "SYS"
+  SAMPLEFIELD:
+    # The ID of the course i.e. "SYS-255"
+    SAMPLE-COURSE:
+      # The node that the base VM is stored on i.e. "devops-nitrogen"
+      - Base_VM_Location: 
+      # The node that clones will be stored on i.e. "devops-carbon"
+      - Class_VM_Location: 
+      # The first five characters of the VNet ID, should be labeled with the field and a unique VNet id i.e. "SYS01"
+      - VNet: 
+      # The list of required VMS for the course
+      Required_VMs:
+        # The name of the VM i.e. "WIN01"
+        VMNAME01:
+          # The name of the Base VM
+          - Base_VM_Name: win.srv.2019.gui-base
+          - Adapter_Config:
+              NBT0: # Adapter Name Label
+                - AdapterIndex: 0 # Index number to determine VM Network Adapter
+                - Net_Adapter: e1000 # Useful Generic Intel Network Adapter for Windows VMs
+      # A list of the sections for that course
+      Sections:
+        # The name of the section i.e. "SYS-255-01"
+        SAMPLE-COURSE-01:
+          # The storage location for a course
+          - Storage_Location: NFS-COURSEVMS
+          # The path to the roster i.e. "./Rosters/SYS-255-01.txt"
+          - Roster_Path: 
+          - Roster: 
+          # The sections unique digit ID prefix i.e. "123456"
+          - Section_ID: 
+          # Is this a WAN only section? i.e. "True"
+          - WAN_Only: False
+          # What other networks need to be created?
+          - Networks: ['LAN', 'Test']
+        SAMPLE-COURSE-02:
+          - Storage_Location: NFS-COURSEVMS
+          - Section_ID: 
+          - Roster: 
+          - WAN_Only: False
+          - Networks: ['LAN']
