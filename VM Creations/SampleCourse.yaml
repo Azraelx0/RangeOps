@@ -1,9 +1,9 @@
 # A sample course yaml file to test deployment script
 ALL:
   # The name of the field i.e. "SYS"
-  SAMPLEFIELD:
+  SAMPLEFIELD: SEC
     # The ID of the course i.e. "SYS-255"
-    SAMPLE-COURSE:
+    SAMPLE-COURSE: SEC-777
       # The node that the base VM is stored on i.e. "devops-nitrogen"
       - Base_VM_Location: 
       # The node that clones will be stored on i.e. "devops-carbon"
@@ -35,9 +35,3 @@ ALL:
           - WAN_Only: False
           # What other networks need to be created?
           - Networks: ['LAN', 'Test']
-        SAMPLE-COURSE-02:
-          - Storage_Location: NFS-COURSEVMS
-          - Section_ID: 
-          - Roster: 
-          - WAN_Only: False
-          - Networks: ['LAN']
