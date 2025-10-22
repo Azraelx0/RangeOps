@@ -1,5 +1,5 @@
 # Create Linked Clone Proxmox Automation
-Install-Module -Name Corsinvest.ProxmoxVE.API
+Install-Module -Name Corsinvest.ProxmoxVE.API -Scope CurrentUser 
 Import-Module Corsinvest.ProxmoxVE.API
 
 $pveServer = "192.168.1.100:8006"
