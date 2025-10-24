@@ -1,34 +1,52 @@
-# Create Linked Clone Proxmox Automation
-Install-Module -Name Corsinvest.ProxmoxVE.API -Scope CurrentUser 
+# Clone Template Proxmox Automation
+Install-Module -Name Corsinvest.ProxmoxVE.API -Scope CurrentUser -Force
 Import-Module Corsinvest.ProxmoxVE.API
 
-$pveServer = "192.168.1.100:8006"
+# Proxmox Configuration Variables
+$pveServer = "devops-nitrogen:8006"
 $tokenUser = "Intern-API@pve!InternToken"
 $tokenSecret = "20793bd9-6b57-4c6f-8687-90eeb2bec3bf"
 
 # Clone Configuration Variables
-$sourceVmid = 1046 # The ID of the template you are cloning from
-$targetNode = "nitrogen" # Host to deploy to
-$newVmid = 1049 # ID for the new VM
-$newName = "mercer-testvm"
-$storage = "NFS-PVEVM" # The storage to use for the new VM's delta disk
-$pool = "Interns"
+$sourceVmid = 1046              # The ID of the template you are cloning from
+$targetNode = "devops-nitrogen" # Host to deploy to (nitrogen)
+$newVmid = 1052                 # ID for the new VM (choose an available ID)
+$newName = "mercer-testvm"      # Replace 'yourname' with your actual name
+$memory = 4096
+$cores = 2
+$pool = "Interns"               # Place VM in Interns pool
 
 # Connect to Proxmox
-$client = Connect-PveCluster -HostAndPort $pveServer -ApiToken @{
-    user = $tokenUser
-    token = $tokenSecret
-}
+Write-Host "Connecting to Proxmox cluster..." -ForegroundColor Yellow
+$client = Connect-PveCluster -SkipCertificateCheck -HostsAndPorts $pveServer -ApiToken "$tokenUser=$tokenSecret"
+Write-Host "Connected successfully!" -ForegroundColor Green
 
 # Create Linked Clone
+Write-Host "`nCreating linked clone from template VMID $sourceVmid..." -ForegroundColor Yellow
 New-PveNodesQemuClone `
     -PveTicket $client `
     -Node $targetNode `
     -Vmid $sourceVmid `
     -Newid $newVmid `
     -Name $newName `
-    -Storage $storage `
     -Pool $pool `
     -Full 0
 
-Write-Host "VM '$newName' has been created as linked clone on target node '$targetNode'"
+Write-Host "Linked clone created successfully!" -ForegroundColor Green
+
+# Wait for VM config to be fully initialized
+Start-Sleep -Seconds 5
+
+# Display summary
+Write-Host "`n=========================================" -ForegroundColor Cyan
+Write-Host "VM Creation Summary:" -ForegroundColor Cyan
+Write-Host "=========================================" -ForegroundColor Cyan
+Write-Host "VM Name: $newName" -ForegroundColor White
+Write-Host "VM ID: $newVmid" -ForegroundColor White
+Write-Host "Node: $targetNode" -ForegroundColor White
+Write-Host "Memory: $memory MB" -ForegroundColor White
+Write-Host "CPU Cores: $cores" -ForegroundColor White
+Write-Host "Pool: $pool" -ForegroundColor White
+Write-Host "Source Template: $sourceVmid" -ForegroundColor White
+Write-Host "=========================================" -ForegroundColor Cyan
+Write-Host "`nVM '$newName' has been created as a linked clone!" -ForegroundColor Green
