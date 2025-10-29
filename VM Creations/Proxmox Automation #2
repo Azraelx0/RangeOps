@@ -1,149 +1,355 @@
-# Deploy-CourseVMs.ps1
+# ============================================================================
+# Proxmox VM Deployment Script
+# Reads YAML course file and roster to deploy student VMs
+# ============================================================================
+
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [string]$CourseFile,
     
-    [Parameter(Mandatory=$true)]
-    [string]$RosterFile
+    [Parameter(Mandatory=$false)]
+    [string]$RosterFile,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$ProxmoxHost = "nitrogen.local",
+    
+    [Parameter(Mandatory=$false)]
+    [int]$ProxmoxPort = 8006,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$ProxmoxUser = "root@pam",
+    
+    [Parameter(Mandatory=$false)]
+    [string]$ProxmoxPassword,
+    
+    [Parameter(Mandatory=$false)]
+    [int]$StartVMID = 200
 )
-# Function to parse YAML file
-function Get-YamlContent {
-    param([string]$FilePath)
+
+Import-Module Corsinvest.ProxmoxVE.Api -ErrorAction Stop
+
+# ============================================================================
+# Function: Parse YAML Course File
+# ============================================================================
+
+function Get-CourseConfig {
+    param([string]$YamlPath)
     
-    if (-not (Test-Path $FilePath)) {
-        throw "File not found: $FilePath"
+    Write-Host "`n[INFO] Parsing course file: $YamlPath" -ForegroundColor Cyan
+    
+    if (!(Test-Path $YamlPath)) {
+        Write-Host "[ERROR] Course file not found!" -ForegroundColor Red
+        exit 1
     }
-    $content = Get-Content $FilePath -Raw
-    return $content
-}
-# Function to extract course information from YAML
-function Get-CourseInfo {
-    param([string]$YamlContent)
-    $courseInfo = @{}
-    if ($YamlContent -match 'The name of the field i\.e\. "([^"]+)"') {
-        $courseInfo.CourseName = $Matches[1]
+    
+    $content = Get-Content $YamlPath
+    $config = @{
+        CourseName = ""
+        TemplateName = ""
+        Node = ""
+        Storage = ""
+        RosterPath = ""
     }
-    if ($YamlContent -match '# The ID of the course i\.e\. "([^"]+)"') {
-        $courseInfo.CourseID = $Matches[1]
-    }
-    if ($YamlContent -match 'Base_VM_Location:\s*(\S+)') {
-        $courseInfo.BaseVMLocation = $Matches[1]
-    }
-    if ($YamlContent -match '# The node that clones will be stored on i\.e\. "([^"]+)"') {
-        $courseInfo.CloneVMLocation = $Matches[1]
-    }
-    if ($YamlContent -match '# The first five characters of the VNet ID, should be labeled with the field and a unique VNet id i\.e\. "([^"]+)"') {
-        $courseInfo.VNetID = $Matches[1]
-    } 
-    $courseInfo.RequiredVMs = @()
-    if ($YamlContent -match 'Required_VMs:([\s\S]*?)(?=\n\S|\z)') {
-        $vmsSection = $Matches[1]
-        $vmMatches = [regex]::Matches($vmsSection, 'VMNAME\d+:[\s\S]*?Base_VM_Name:\s*(\S+)')
-        foreach ($match in $vmMatches) {
-            $courseInfo.RequiredVMs += $match.Groups[1].Value
+    
+    # Parse YAML line by line
+    foreach ($line in $content) {
+        $line = $line.Trim()
+        
+        # Skip empty lines and comments
+        if ($line -eq "" -or $line.StartsWith("#")) { continue }
+        
+        # Extract course name (e.g., "SYS-777:")
+        if ($line -match '^([A-Z]+-\d+):') {
+            $config.CourseName = $matches[1]
+        }
+        
+        # Extract Base_VM_Location
+        if ($line -match '- Base_VM_Location:\s*(.+)') {
+            $config.Node = $matches[1].Trim()
+        }
+        
+        # Extract Base_VM_Name (template name)
+        if ($line -match '- Base_VM_Name:\s*(.+)') {
+            $config.TemplateName = $matches[1].Trim()
+        }
+        
+        # Extract Storage_Location
+        if ($line -match '- Storage_Location:\s*(.+)') {
+            $config.Storage = $matches[1].Trim()
+        }
+        
+        # Extract Roster_Path
+        if ($line -match '- Roster_Path:\s*(.+)') {
+            $config.RosterPath = $matches[1].Trim()
         }
     }
-    return $courseInfo
-}
-# Function to read roster file
-function Get-RosterUsers {
-    param([string]$RosterFile)
-    if (-not (Test-Path $RosterFile)) {
-        throw "Roster file not found: $RosterFile"
+    
+    # Validate required fields
+    if ([string]::IsNullOrEmpty($config.CourseName)) {
+        Write-Host "[ERROR] Could not find course name in YAML" -ForegroundColor Red
+        exit 1
     }
-    $users = Get-Content $RosterFile | Where-Object { $_.Trim() -ne "" }
-    return $users
-}
-# Function to create resource pool for student
-function New-StudentPool {
-    param(
-        [string]$CourseName,
-        [string]$StudentName
-    )
-    $poolID = "$CourseName-students-$StudentName-pool"
-    Write-Host "Creating pool: $poolID"
-    try {
-        pvesh create /pools -poolid $poolID -comment "Pool for $StudentName in $CourseName"
-    } catch {
-        Write-Host "Pool may already exist: $_"
+    if ([string]::IsNullOrEmpty($config.TemplateName)) {
+        Write-Host "[ERROR] Could not find Base_VM_Name in YAML" -ForegroundColor Red
+        exit 1
     }
-    return $poolID
-}
-# Function to assign user permissions to pool
-function Set-PoolPermissions {
-    param(
-        [string]$Username,
-        [string]$PoolID
-    )
-    Write-Host "Assigning permissions for $Username to pool $PoolID"
-    try {
-        pveum acl modify /pool/$PoolID -users "$Username@cyber.local" -roles PVEVMUser
-    } catch {
-        Write-Host "Error assigning permissions: $_"
+    if ([string]::IsNullOrEmpty($config.Node)) {
+        Write-Host "[ERROR] Could not find Base_VM_Location in YAML" -ForegroundColor Red
+        exit 1
     }
+    
+    # Set defaults if not specified
+    if ([string]::IsNullOrEmpty($config.Storage)) { $config.Storage = "local-lvm" }
+    
+    Write-Host "[SUCCESS] Parsed course configuration" -ForegroundColor Green
+    Write-Host "  Course: $($config.CourseName)" -ForegroundColor White
+    Write-Host "  Template: $($config.TemplateName)" -ForegroundColor White
+    Write-Host "  Node: $($config.Node)" -ForegroundColor White
+    Write-Host "  Storage: $($config.Storage)" -ForegroundColor White
+    
+    return $config
 }
-# Function to clone VM for student
-function Copy-VMForStudent {
+
+# ============================================================================
+# Function: Find Template VMID by Name
+# ============================================================================
+
+function Get-TemplateVMID {
     param(
-        [string]$TemplateVM,
-        [string]$StudentName,
-        [string]$PoolID,
-        [string]$TargetNode
+        $Client,
+        [string]$Node,
+        [string]$TemplateName
     )
-    $newVMName = "$StudentName-$TemplateVM"
-    Write-Host "Cloning $TemplateVM to $newVMName"
+    
+    Write-Host "`n[INFO] Looking for template: $TemplateName" -ForegroundColor Cyan
+    
     try {
-        $vmList = pvesh get /cluster/resources --type vm --output-format json | ConvertFrom-Json
-        $templateVMID = ($vmList | Where-Object { $_.name -eq $TemplateVM }).vmid
-        if (-not $templateVMID) {
-            Write-Host "Template VM not found: $TemplateVM"
-            return
+        $vms = Get-PveVms -PveTicket $Client -Node $Node
+        $template = $vms | Where-Object { $_.name -eq $TemplateName -and $_.template -eq 1 }
+        
+        if ($template) {
+            Write-Host "[SUCCESS] Found template VMID: $($template.vmid)" -ForegroundColor Green
+            return $template.vmid
         }
-        $nextVMID = (pvesh get /cluster/nextid)
-        pvesh create /nodes/$TargetNode/qemu/$templateVMID/clone -newid $nextVMID -name $newVMName -full 0 -pool $PoolID
-        Start-Sleep -Seconds 2
-        pvesh set /nodes/$TargetNode/qemu/$nextVMID/config -net0 "virtio,bridge=intern-net"
-        Write-Host "VM cloned successfully (VMID: $nextVMID)"
-    } catch {
-        Write-Host "Error cloning VM: $_"
+        else {
+            Write-Host "[ERROR] Template '$TemplateName' not found on node '$Node'" -ForegroundColor Red
+            Write-Host "[INFO] Available templates:" -ForegroundColor Yellow
+            $templates = $vms | Where-Object { $_.template -eq 1 }
+            foreach ($t in $templates) {
+                Write-Host "  - $($t.name) (VMID: $($t.vmid))" -ForegroundColor White
+            }
+            exit 1
+        }
     }
-}
-# Main script execution
-Write-Host "Loading course configuration..."
-$yamlContent = Get-YamlContent -FilePath $CourseFile
-$courseInfo = Get-CourseInfo -YamlContent $yamlContent
-
-Write-Host "Course: $($courseInfo.CourseName)"
-Write-Host "Required VMs: $($courseInfo.RequiredVMs.Count)"
-
-Write-Host "Loading roster..."
-$students = Get-RosterUsers -RosterFile $RosterFile
-Write-Host "Students found: $($students.Count)"
-
-Write-Host "Creating student pools..."
-$studentPools = @{}
-
-foreach ($student in $students) {
-    Write-Host "Processing student: $student"
-    
-    $poolID = New-StudentPool -CourseName $courseInfo.CourseName -StudentName $student
-    $studentPools[$student] = $poolID
-    
-    Set-PoolPermissions -Username $student -PoolID $poolID
-}
-Write-Host "Cloning VMs for each student..."
-
-foreach ($student in $students) {
-    Write-Host "Deploying VMs for: $student"
-    $poolID = $studentPools[$student]
-    
-    foreach ($vmTemplate in $courseInfo.RequiredVMs) {
-        Copy-VMForStudent -TemplateVM $vmTemplate -StudentName $student -PoolID $poolID -TargetNode $courseInfo.CloneVMLocation
+    catch {
+        Write-Host "[ERROR] Failed to query VMs: $_" -ForegroundColor Red
+        exit 1
     }
 }
 
-Write-Host "Deployment complete!"
-Write-Host "Course: $($courseInfo.CourseName)"
-Write-Host "Students processed: $($students.Count)"
-Write-Host "VMs per student: $($courseInfo.RequiredVMs.Count)"
-Write-Host "Total VMs created: $($students.Count * $courseInfo.RequiredVMs.Count)"
+# ============================================================================
+# Function: Read Roster and Extract Usernames
+# ============================================================================
+
+function Get-RosterStudents {
+    param([string]$RosterPath)
+    
+    Write-Host "`n[INFO] Reading roster from: $RosterPath" -ForegroundColor Cyan
+    
+    if (!(Test-Path $RosterPath)) {
+        Write-Host "[ERROR] Roster file not found!" -ForegroundColor Red
+        exit 1
+    }
+    
+    $lines = Get-Content $RosterPath | Where-Object { $_.Trim() -ne "" }
+    $students = @()
+    
+    foreach ($line in $lines) {
+        $line = $line.Trim()
+        
+        # If email format (user@domain), extract username part
+        if ($line -match '^([^@]+)@') {
+            $username = $matches[1]
+            $students += @{
+                Username = $username
+                Email = $line
+            }
+        }
+        # Otherwise use as-is
+        else {
+            $students += @{
+                Username = $line
+                Email = $line
+            }
+        }
+    }
+    
+    Write-Host "[SUCCESS] Found $($students.Count) students" -ForegroundColor Green
+    
+    return $students
+}
+
+# ============================================================================
+# Function: Get Next Available VMID
+# ============================================================================
+
+function Get-NextVMID {
+    param(
+        $Client,
+        [string]$Node,
+        [int]$StartFrom
+    )
+    
+    $vmid = $StartFrom
+    while ($true) {
+        $exists = Get-PveVm -PveTicket $Client -Node $Node -VmId $vmid -ErrorAction SilentlyContinue
+        if (!$exists) { return $vmid }
+        $vmid++
+        if ($vmid -gt 999999) {
+            Write-Host "[ERROR] No available VMIDs" -ForegroundColor Red
+            exit 1
+        }
+    }
+}
+
+# ============================================================================
+# Main Script
+# ============================================================================
+
+Write-Host "`n========================================" -ForegroundColor Cyan
+Write-Host "Proxmox VM Deployment" -ForegroundColor Cyan
+Write-Host "========================================`n" -ForegroundColor Cyan
+
+# Prompt for course file if not provided
+if ([string]::IsNullOrEmpty($CourseFile)) {
+    $CourseFile = Read-Host "Enter path to course YAML file"
+}
+
+if (!(Test-Path $CourseFile)) {
+    Write-Host "[ERROR] Course file not found: $CourseFile" -ForegroundColor Red
+    exit 1
+}
+
+# Parse course configuration first
+$courseConfig = Get-CourseConfig -YamlPath $CourseFile
+
+# Determine roster file (use parameter, then YAML value, then prompt)
+if ([string]::IsNullOrEmpty($RosterFile)) {
+    if (![string]::IsNullOrEmpty($courseConfig.RosterPath)) {
+        $RosterFile = $courseConfig.RosterPath
+    }
+    else {
+        $RosterFile = Read-Host "Enter path to roster file"
+    }
+}
+
+if (!(Test-Path $RosterFile)) {
+    Write-Host "[ERROR] Roster file not found: $RosterFile" -ForegroundColor Red
+    exit 1
+}
+
+# Prompt for password if not provided
+if ([string]::IsNullOrEmpty($ProxmoxPassword)) {
+    $securePassword = Read-Host "Enter Proxmox password for $ProxmoxUser" -AsSecureString
+    $ProxmoxPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
+        [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+    )
+}
+
+# Connect to Proxmox
+Write-Host "`n[INFO] Connecting to Proxmox: $ProxmoxHost" -ForegroundColor Cyan
+try {
+    $client = Connect-PveCluster -HostsAndPortHA "$ProxmoxHost`:$ProxmoxPort" `
+        -Credentials (New-Object PSCredential($ProxmoxUser, (ConvertTo-SecureString $ProxmoxPassword -AsPlainText -Force)))
+    Write-Host "[SUCCESS] Connected to Proxmox" -ForegroundColor Green
+}
+catch {
+    Write-Host "[ERROR] Failed to connect: $_" -ForegroundColor Red
+    exit 1
+}
+
+# Find template VMID
+$templateVMID = Get-TemplateVMID -Client $client -Node $courseConfig.Node -TemplateName $courseConfig.TemplateName
+
+# Read roster
+$students = Get-RosterStudents -RosterPath $RosterFile
+
+# Deploy VMs for each student
+Write-Host "`n========================================" -ForegroundColor Cyan
+Write-Host "Deploying Student VMs" -ForegroundColor Cyan
+Write-Host "========================================`n" -ForegroundColor Cyan
+
+$currentVMID = $StartVMID
+$successCount = 0
+$failCount = 0
+
+foreach ($student in $students) {
+    $username = $student.Username
+    Write-Host "Processing: $username" -ForegroundColor Yellow
+    
+    # 1. Create Pool
+    $poolId = "$($courseConfig.CourseName)/students/$username-pool"
+    Write-Host "  [1/3] Creating pool: $poolId" -ForegroundColor White
+    
+    try {
+        $existingPool = Get-PvePool -PveTicket $client -Poolid $poolId -ErrorAction SilentlyContinue
+        if (!$existingPool) {
+            New-PvePool -PveTicket $client -Poolid $poolId -Comment "Pool for $username"
+            Write-Host "        ✓ Pool created" -ForegroundColor Green
+        }
+        else {
+            Write-Host "        ⚠ Pool already exists" -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "        ✗ Failed: $_" -ForegroundColor Red
+        $failCount++
+        continue
+    }
+    
+    # 2. Assign Permissions
+    Write-Host "  [2/3] Assigning permissions to: $username@pve" -ForegroundColor White
+    try {
+        $userPrincipal = "$username@pve"
+        New-PveAccess -PveTicket $client -Path "/pool/$poolId" -Roles "PVEVMUser" -Users $userPrincipal -Propagate 1
+        Write-Host "        ✓ Permissions assigned" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "        ⚠ Could not assign permissions (user may not exist yet)" -ForegroundColor Yellow
+    }
+    
+    # 3. Clone VM as Linked Clone
+    $vmName = "$username-vm"
+    $vmid = Get-NextVMID -Client $client -Node $courseConfig.Node -StartFrom $currentVMID
+    Write-Host "  [3/3] Cloning VM: $vmName (VMID: $vmid)" -ForegroundColor White
+    
+    try {
+        # Create linked clone (Full=0) - template configuration is preserved
+        New-PveVmClone -PveTicket $client -Node $courseConfig.Node -VmId $templateVMID `
+            -NewId $vmid -Name $vmName -Full 0 -Pool $poolId `
+            -Storage $courseConfig.Storage -Target $courseConfig.Node
+        
+        Write-Host "        ✓ VM cloned and added to pool" -ForegroundColor Green
+        $successCount++
+    }
+    catch {
+        Write-Host "        ✗ Failed: $_" -ForegroundColor Red
+        $failCount++
+    }
+    
+    $currentVMID = $vmid + 1
+    Write-Host ""
+}
+
+# Summary
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Deployment Complete!" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Course:           $($courseConfig.CourseName)" -ForegroundColor White
+Write-Host "Total Students:   $($students.Count)" -ForegroundColor White
+Write-Host "Successful:       $successCount" -ForegroundColor Green
+Write-Host "Failed:           $failCount" -ForegroundColor $(if($failCount -gt 0){"Red"}else{"Green"})
+Write-Host "Template:         $($courseConfig.TemplateName) (VMID: $templateVMID)" -ForegroundColor White
+Write-Host "Node:             $($courseConfig.Node)" -ForegroundColor White
+Write-Host "Storage:          $($courseConfig.Storage)" -ForegroundColor White
+Write-Host "`nAll VMs inherit network configuration from the template.`n" -ForegroundColor Cyan
