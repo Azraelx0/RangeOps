@@ -352,4 +352,3 @@ Write-Host "Failed:           $failCount" -ForegroundColor $(if($failCount -gt 0
 Write-Host "Template:         $($courseConfig.TemplateName) (VMID: $templateVMID)" -ForegroundColor White
 Write-Host "Node:             $($courseConfig.Node)" -ForegroundColor White
 Write-Host "Storage:          $($courseConfig.Storage)" -ForegroundColor White
-Write-Host "`nAll VMs inherit network configuration from the template.`n" -ForegroundColor Cyan
