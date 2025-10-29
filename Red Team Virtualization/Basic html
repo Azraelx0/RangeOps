@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            background-color: white;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Simple site</h1>
+    </header>
+    
+    <main>
+        <h2>About</h2>
+        <p>Sinple website for ddos practice</p>
+        
+        <h2>Content</h2>
+        <p>basic website</p>
+    </main>
+    
+    <footer>
+        <p>&copy; </p>
+    </footer>
+</body>
+</html>
