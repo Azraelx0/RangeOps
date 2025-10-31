@@ -313,7 +313,8 @@ catch {
     $failed++
     continue  # Skip cloning if pool fails
 }
-    
+#### Need to fix permission so they actually assign ####
+## Ideas: @pve not @lc, New-PveAccessUsers options are wrong
     # 2. Assign Permissions
     Write-Host "  [2/3] Assigning permissions to: $username@lc" -ForegroundColor White
     try {
