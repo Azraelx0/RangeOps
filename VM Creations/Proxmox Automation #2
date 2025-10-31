@@ -279,6 +279,12 @@ Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "Deploying Student VMs" -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
 
+try {
+    New-PvePools -PveTicket $client -Poolid "$($courseConfig.CourseName)" -Comment "Course pool" -ErrorAction SilentlyContinue | Out-Null
+    New-PvePools -PveTicket $client -Poolid "$($courseConfig.CourseName)/students" -Comment "Students pool" -ErrorAction SilentlyContinue | Out-Null
+} catch { }
+
+
 $currentVMID = $StartVMID
 $successCount = 0
 $failCount = 0
@@ -290,32 +296,33 @@ foreach ($student in $students) {
     # 1. Create Pool
     $poolId = "$($courseConfig.CourseName)/students/$username-pool"
     Write-Host "  [1/3] Creating pool: $poolId" -ForegroundColor White
-    
-    try {
-        $existingPool = Get-PvePools -PveTicket $client -Poolid $poolId -ErrorAction SilentlyContinue
-        if (!$existingPool) {
-            New-PvePools -PveTicket $client -Poolid $poolId -Comment "Pool for $username"
-            Write-Host "         Pool created" -ForegroundColor Green
-        }
-        else {
-            Write-Host "         Pool already exists" -ForegroundColor Yellow
-        }
+    try{
+    $allPools = Get-PvePools -PveTicket $client
+    $existingPool = $allPools | Where-Object { $_.poolid -eq $poolId }
+        
+    if (!$existingPool) {
+        New-PvePools -PveTicket $client -Poolid $poolId -Comment "Pool for $username"
+        Write-Host "        Pool created" -ForegroundColor Green
     }
-    catch {
-        Write-Host "         Failed: $_" -ForegroundColor Red
-        $failCount++
-        continue
+    else {
+        Write-Host "Pool already exists"
     }
+}
+catch {
+    Write-Host "Failed: $_"  # Show error
+    $failed++
+    continue  # Skip cloning if pool fails
+}
     
     # 2. Assign Permissions
-    Write-Host "  [2/3] Assigning permissions to: $username@pve" -ForegroundColor White
+    Write-Host "  [2/3] Assigning permissions to: $username@lc" -ForegroundColor White
     try {
-        $userPrincipal = "$username@pve"
-        New-PveAccess -PveTicket $client -Path "/pool/$poolId" -Roles "PVEVMUser" -Users $userPrincipal -Propagate 1
-        Write-Host "        Permissions assigned" -ForegroundColor Green
+        $userPrincipal = "$username@lc"
+        New-PveAccessUsers -PveTicket $client -Path "/pool/$poolId" -Roles "PVEVMUser" -Userid $userPrincipal -Propagate 1
+        Write-Host "Permissions assigned" -ForegroundColor Green
     }
     catch {
-        Write-Host "        Could not assign permissions (user may not exist yet)" -ForegroundColor Yellow
+        Write-Host "Could not assign permissions" -ForegroundColor Yellow
     }
     
     # 3. Clone VM as Linked Clone
@@ -327,7 +334,7 @@ foreach ($student in $students) {
         # Create linked clone (Full=0) - template configuration is preserved
         New-PveNodesQemuClone -PveTicket $client -Node $courseConfig.Node -VmId $templateVMID `
             -NewId $vmid -Name $vmName -Full 0 -Pool $poolId `
-            -Storage $courseConfig.Storage -Target $courseConfig.Node
+            -Target $courseConfig.Node
         
         Write-Host "         VM cloned and added to pool" -ForegroundColor Green
         $successCount++
@@ -351,4 +358,3 @@ Write-Host "Successful:       $successCount" -ForegroundColor Green
 Write-Host "Failed:           $failCount" -ForegroundColor $(if($failCount -gt 0){"Red"}else{"Green"})
 Write-Host "Template:         $($courseConfig.TemplateName) (VMID: $templateVMID)" -ForegroundColor White
 Write-Host "Node:             $($courseConfig.Node)" -ForegroundColor White
-Write-Host "Storage:          $($courseConfig.Storage)" -ForegroundColor White
