@@ -11,13 +11,13 @@ param(
     [string]$RosterFile,
     
     [Parameter(Mandatory=$false)]
-    [string]$ProxmoxHost = "nitrogen.local",
+    [string]$ProxmoxHost = "devops-nitrogen",
     
     [Parameter(Mandatory=$false)]
     [int]$ProxmoxPort = 8006,
     
     [Parameter(Mandatory=$false)]
-    [string]$ProxmoxUser = "root@pam",
+    [string]$ProxmoxUser = "Intern-API@pve",
     
     [Parameter(Mandatory=$false)]
     [string]$ProxmoxPassword,
@@ -124,7 +124,7 @@ function Get-TemplateVMID {
     Write-Host "`n[INFO] Looking for template: $TemplateName" -ForegroundColor Cyan
     
     try {
-        $vms = Get-PveVms -PveTicket $Client -Node $Node
+        $vms = Get-PveVM -PveTicket $Client | Where-Object {$_.node -eq "$Node"}
         $template = $vms | Where-Object { $_.name -eq $TemplateName -and $_.template -eq 1 }
         
         if ($template) {
@@ -202,7 +202,7 @@ function Get-NextVMID {
     
     $vmid = $StartFrom
     while ($true) {
-        $exists = Get-PveVm -PveTicket $Client -Node $Node -VmId $vmid -ErrorAction SilentlyContinue
+        $exists = Get-PveVm -PveTicket $Client -Vmid $vmid -ErrorAction SilentlyContinue | Where-Object {$_.node -eq "$Node"} 
         if (!$exists) { return $vmid }
         $vmid++
         if ($vmid -gt 999999) {
@@ -259,7 +259,7 @@ if ([string]::IsNullOrEmpty($ProxmoxPassword)) {
 # Connect to Proxmox
 Write-Host "`n[INFO] Connecting to Proxmox: $ProxmoxHost" -ForegroundColor Cyan
 try {
-    $client = Connect-PveCluster -HostsAndPortHA "$ProxmoxHost`:$ProxmoxPort" `
+    $client = Connect-PveCluster -SkipCertificateCheck -HostsAndPorts "$ProxmoxHost`:$ProxmoxPort" `
         -Credentials (New-Object PSCredential($ProxmoxUser, (ConvertTo-SecureString $ProxmoxPassword -AsPlainText -Force)))
     Write-Host "[SUCCESS] Connected to Proxmox" -ForegroundColor Green
 }
@@ -292,17 +292,17 @@ foreach ($student in $students) {
     Write-Host "  [1/3] Creating pool: $poolId" -ForegroundColor White
     
     try {
-        $existingPool = Get-PvePool -PveTicket $client -Poolid $poolId -ErrorAction SilentlyContinue
+        $existingPool = Get-PvePools -PveTicket $client -Poolid $poolId -ErrorAction SilentlyContinue
         if (!$existingPool) {
-            New-PvePool -PveTicket $client -Poolid $poolId -Comment "Pool for $username"
-            Write-Host "        ✓ Pool created" -ForegroundColor Green
+            New-PvePools -PveTicket $client -Poolid $poolId -Comment "Pool for $username"
+            Write-Host "         Pool created" -ForegroundColor Green
         }
         else {
-            Write-Host "        ⚠ Pool already exists" -ForegroundColor Yellow
+            Write-Host "         Pool already exists" -ForegroundColor Yellow
         }
     }
     catch {
-        Write-Host "        ✗ Failed: $_" -ForegroundColor Red
+        Write-Host "         Failed: $_" -ForegroundColor Red
         $failCount++
         continue
     }
@@ -312,10 +312,10 @@ foreach ($student in $students) {
     try {
         $userPrincipal = "$username@pve"
         New-PveAccess -PveTicket $client -Path "/pool/$poolId" -Roles "PVEVMUser" -Users $userPrincipal -Propagate 1
-        Write-Host "        ✓ Permissions assigned" -ForegroundColor Green
+        Write-Host "        Permissions assigned" -ForegroundColor Green
     }
     catch {
-        Write-Host "        ⚠ Could not assign permissions (user may not exist yet)" -ForegroundColor Yellow
+        Write-Host "        Could not assign permissions (user may not exist yet)" -ForegroundColor Yellow
     }
     
     # 3. Clone VM as Linked Clone
@@ -325,15 +325,15 @@ foreach ($student in $students) {
     
     try {
         # Create linked clone (Full=0) - template configuration is preserved
-        New-PveVmClone -PveTicket $client -Node $courseConfig.Node -VmId $templateVMID `
+        New-PveNodesQemuClone -PveTicket $client -Node $courseConfig.Node -VmId $templateVMID `
             -NewId $vmid -Name $vmName -Full 0 -Pool $poolId `
             -Storage $courseConfig.Storage -Target $courseConfig.Node
         
-        Write-Host "        ✓ VM cloned and added to pool" -ForegroundColor Green
+        Write-Host "         VM cloned and added to pool" -ForegroundColor Green
         $successCount++
     }
     catch {
-        Write-Host "        ✗ Failed: $_" -ForegroundColor Red
+        Write-Host "         Failed: $_" -ForegroundColor Red
         $failCount++
     }
     
