@@ -4,8 +4,8 @@ Import-Module Corsinvest.ProxmoxVE.API
 
 # Proxmox Configuration Variables
 $pveServer = "devops-nitrogen:8006"
-$tokenUser = "Intern-API@pve!InternToken"
-$tokenSecret = "20793bd9-6b57-4c6f-8687-90eeb2bec3bf"
+$tokenUser = "add user"
+$tokenSecret = "add secret"
 
 # Clone Configuration Variables
 $sourceVmid = 1046              # The ID of the template you are cloning from
