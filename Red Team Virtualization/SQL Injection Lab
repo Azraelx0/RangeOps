@@ -1,0 +1,23 @@
+# This lab will detail creating and exploiting an environment with an intentionally vulnerable SQL database.
+# Scope: Kali VM as attacking machine. Ubuntu Server hosting vulnerable webpage and SQL database.
+# Network: Both machines on Internal LAN receiving internet from VyOS firewall. 
+# Tools/dependencies needed; attacker - sqlmap, webserver - apache2 php mariadb-server php-mysql
+## Different pages with vulns:
+    index.php – basic home page
+    db_connect.php – insecure database connection file
+    search.php – vulnerable search form
+    login.php – login form with insecure SQL
+    register.php – registration form with raw SQL
+    admin.php – displays user data with injectable filtering
+
+# To begin with we will install both Kali and Ubuntu Server in our proxmox environment
+Install dependencies on ubuntu
+  sudo apt install apache2 php mariadb-server php-mysql
+Create php webpages
+  - index.php
+  - db_connect.php
+  - search.php
+  - login.php
+  - register.php
+  - admin.php
+https://medium.com/@josegpach/creating-a-vulnerable-sql-injection-lab-for-sqlmap-practice-590f21dd0834
