@@ -2,7 +2,7 @@
 # Proxmox VM Deployment Script
 # Reads YAML course file and roster to deploy student VMs
 # ============================================================================
-
+# Note - Credentials removed
 param(
     [Parameter(Mandatory=$false)]
     [string]$CourseFile,
@@ -17,7 +17,7 @@ param(
     [int]$ProxmoxPort = 8006,
     
     [Parameter(Mandatory=$false)]
-    [string]$ProxmoxUser = "Intern-API@pve",
+    [string]$ProxmoxUser = "add user",
     
     [Parameter(Mandatory=$false)]
     [string]$ProxmoxPassword,
@@ -313,8 +313,6 @@ catch {
     $failed++
     continue  # Skip cloning if pool fails
 }
-#### Need to fix permission so they actually assign ####
-## Ideas: @pve not @lc, New-PveAccessUsers options are wrong
     # 2. Assign Permissions
     Write-Host "  [2/3] Assigning permissions to: $username@lc" -ForegroundColor White
     try {
