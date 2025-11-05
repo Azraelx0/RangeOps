@@ -1,4 +1,3 @@
-# Vulnerable login page
 <?php
 session_start();
 include 'db_connect.php';
