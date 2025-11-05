@@ -1,5 +1,3 @@
-# This file is a vulnerable connection method for our sql database used in the sql injection lab
-
 <?php
 # Change these config variables as needed
 $db_host = 'localhost';
