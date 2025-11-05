@@ -1,3 +1,4 @@
+# This file is an intentionally weak page allowing for injections to see user data
 <?php
 session_start();
 include 'db_connect.php';
