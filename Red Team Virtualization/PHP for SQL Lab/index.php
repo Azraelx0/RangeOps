@@ -1,9 +1,10 @@
+# This is the home page for our lab, adjust to liking. 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Application</title>
+    <title>SQL Sandbox</title>
     <style>
         body {
             font-family: Arial, sans-serif;
