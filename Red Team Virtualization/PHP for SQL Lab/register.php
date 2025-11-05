@@ -1,4 +1,3 @@
-# register form with raw sql 
 <?php
 include 'db_connect.php';
 
