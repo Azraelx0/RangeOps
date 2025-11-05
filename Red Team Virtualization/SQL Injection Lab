@@ -20,4 +20,5 @@ Create php webpages (see folder PHP for SQL Lab)
   - login.php
   - register.php
   - admin.php
+For our purposes we went with simply putting these files directly into the /var/www/html directory. 
 
