@@ -1,0 +1,34 @@
+CREATE DATABASE IF NOT EXISTS vuln_db;
+USE vuln_db;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100),
+    role VARCHAR(20) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2),
+    category VARCHAR(50)
+);
+
+INSERT INTO users (username, password, email, role) VALUES 
+    ('admin', 'admin123', 'admin@example.com', 'admin'),
+    ('john', 'password', 'john@example.com', 'user'),
+    ('jane', 'password123', 'jane@example.com', 'user'),
+    ('mike', 'testpass321', 'mike@example.com', 'user');
+
+INSERT INTO products (name, description, price, category) VALUES 
+    ('Laptop', 'High-performance laptop', 999.99, 'Electronics'),
+    ('Mouse', 'Wireless mouse', 29.99, 'Electronics'),
+    ('Keyboard', 'Mechanical keyboard', 89.99, 'Electronics'),
+    ('Monitor', '27-inch 4K monitor', 399.99, 'Electronics'),
+    ('Headphones', 'Noise-cancelling headphones', 199.99, 'Electronics');
+
+EXIT;
