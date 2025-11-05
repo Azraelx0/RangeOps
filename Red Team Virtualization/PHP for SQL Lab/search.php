@@ -1,4 +1,3 @@
-# Exploitable search page
 <?php
 include 'db_connect.php';
 ?>
