@@ -1,4 +1,7 @@
+# This file is a vulnerable connection method for our sql database used in the sql injection lab
+
 <?php
+# Change these config variables as needed
 $db_host = 'localhost';
 $db_user = 'root';
 $db_pass = '';
@@ -42,13 +45,14 @@ function setup_database() {
     
     $check_users = mysqli_query($conn, "SELECT COUNT(*) as count FROM users");
     $row = mysqli_fetch_assoc($check_users);
-    
+
+    # add users/products as needed
     if ($row['count'] == 0) {
         mysqli_query($conn, "INSERT INTO users (username, password, email, role) VALUES 
             ('admin', 'admin123', 'admin@example.com', 'admin'),
             ('john', 'password', 'john@example.com', 'user'),
-            ('jane', 'password123', 'jane@example.com', 'user')");
-        
+            ('jane', 'password123', 'jane@example.com', 'user')
+            ('mike', 'testpass321', 'mike@example.com', 'user')");
         mysqli_query($conn, "INSERT INTO products (name, description, price, category) VALUES 
             ('Laptop', 'High-performance laptop', 999.99, 'Electronics'),
             ('Mouse', 'Wireless mouse', 29.99, 'Electronics'),
