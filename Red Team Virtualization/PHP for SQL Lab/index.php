@@ -1,4 +1,4 @@
-# This is the home page for our lab, adjust to liking. 
+//This is the home page for our lab, adjust to liking. 
 <!DOCTYPE html>
 <html lang="en">
 <head>
