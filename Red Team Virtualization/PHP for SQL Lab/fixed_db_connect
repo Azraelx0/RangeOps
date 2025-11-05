@@ -5,7 +5,7 @@ $db_user = 'root';
 $db_pass = '';  # Add your MySQL root password if you set one
 $db_name = 'vuln_db';
 
-# Connect WITHOUT specifying database first (in case it doesn't exist yet)
+# Connect WITHOUT specifying database first
 $conn = mysqli_connect($db_host, $db_user, $db_pass);
 
 # Display errors
