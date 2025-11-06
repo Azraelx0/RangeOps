@@ -18,6 +18,7 @@ CREATE TABLE products (
     category VARCHAR(50)
 );
 
+# Add user/products as need. Add other tables if wanted/needed
 INSERT INTO users (username, password, email, role) VALUES 
     ('admin', 'admin123', 'admin@example.com', 'admin'),
     ('john', 'password', 'john@example.com', 'user'),
