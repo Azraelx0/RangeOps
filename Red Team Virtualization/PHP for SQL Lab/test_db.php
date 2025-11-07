@@ -1,3 +1,5 @@
+# Test file for troubleshooting pages simply showing blank
+# If you didn't have this problem ignore
 <?php
 echo "Starting test...<br>";
 
@@ -14,10 +16,3 @@ while($row = mysqli_fetch_assoc($result)) {
 
 echo "Test complete!";
 ?>
-```
-
-Save (Ctrl+X, Y, Enter)
-
-Now access from Kali:
-```
-http://[UBUNTU_IP]/test_db.php
