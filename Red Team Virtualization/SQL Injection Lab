@@ -47,5 +47,35 @@ If you can't access it or run into blank php pages (only html is loading) some c
     If you see connected successfully --> but query fails to return usernames, query is likely the problem
 
 At this point assuming the website is now completely operational we can begin enumeration using sqlmap or manually if you'd like
+The site has several different different vulnerabilities to exploit so for this writeup we'll focus on a goal:
+Change the price on the laptop to one that is far cheaper enabling us to theoretically get an expensive item for way less.
 
+First we can perform some basic enumeration on the search.php page using sqlmap using the command:
+sqlmap -u "http://site_ip/search.php?search=test" --dbms=mysql --batch
+Upon running this we get back four distinct vulns on this page:
+    boolean-based blind
+    error-based
+    time-based bline
+    UNION based
+sqlmap also returns the webserver and backend info such as apache version which is extremely helpful if we pivot to other web app testing on the page
 
+Lets exploit the UNION based query
+There are a couple of ways we can do this either using the url bar or the input field:
+1. We can simply input '1 OR '1'='1 into the product search field, alternatively we can enter ?search='1 OR '1'='1 into the url bar (this would look like: http://site_ip/search.php?search='1 OR '1'='1)
+Either way we do this query the site will return each product in the database and its information
+If we wished to continue with this attack path then this information could be used for various things
+
+We can also try to get all of the data in the users table in the vuln_db database:
+For this you can work your way through enumeration first finding the db, then tables, etc.
+sqlmap -u "http://site_ip/search.php?search=test" --batch -D vuln_db -T users --columns
+This command shows us the inner workings of the inputs accepted by the various fields within the users column, in a more complicated setting we may go deeper into this to try to exploit this
+however for this lab we can simply add one more flag to our first command to get all of the table data.
+sqlmap -u "http://site_ip/search.php?search=test" --batch -D vuln_db -T users --columns --dump
+--dump will give us all of the table entries
+From here we can now login as any of these users, including the admin
+
+An additional thing that we can do is try to find the hidden admin.php page containing the list of users/passwords:
+for this we can try directory fuzzing with tools like ffuf, we can automatically scan with something like zaproxy, or we can manually do this with burp suite
+with ffuf it looks like this: ffuf -u "URL" -w "wordlist"
+
+Note these are just a couple of the methods that can be used on this site
