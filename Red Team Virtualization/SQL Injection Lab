@@ -12,8 +12,8 @@
 
 # To begin with we will install both Kali and Ubuntu Server in our proxmox environment
 Install dependencies on ubuntu
-  sudo apt install apache2 php mariadb-server php-mysql
-Create php webpages (see folder PHP for SQL Lab)
+  sudo apt install apache2 php mariadb-server php-mysql libapache2-mod-php
+Create the followig php webpages (see folder PHP for SQL Lab)
   - index.php
   - db_connect.php
   - search.php
