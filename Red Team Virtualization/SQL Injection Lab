@@ -2,6 +2,8 @@
 # Scope: Kali VM as attacking machine. Ubuntu Server hosting vulnerable webpage and SQL database.
 # Network: Both machines on Internal LAN receiving internet from VyOS firewall. 
 # Tools/dependencies needed; attacker - sqlmap, webserver - apache2 php mariadb-server php-mysql libapache2-mod-php
+# Story: you found a website that had a store page among other things, where you may be able to exploit sql injection to perform various malicious attacks such as:
+# changing the price of items, logging in as users/admin, etc. 
 ## Different pages with vulns:
     index.php – basic home page
     db_connect.php – insecure database connection file
