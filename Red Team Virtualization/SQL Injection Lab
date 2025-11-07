@@ -1,7 +1,7 @@
 # This lab will detail creating and exploiting an environment with an intentionally vulnerable SQL database.
 # Scope: Kali VM as attacking machine. Ubuntu Server hosting vulnerable webpage and SQL database.
 # Network: Both machines on Internal LAN receiving internet from VyOS firewall. 
-# Tools/dependencies needed; attacker - sqlmap, webserver - apache2 php mariadb-server php-mysql
+# Tools/dependencies needed; attacker - sqlmap, webserver - apache2 php mariadb-server php-mysql libapache2-mod-php
 ## Different pages with vulns:
     index.php – basic home page
     db_connect.php – insecure database connection file
@@ -21,5 +21,5 @@ Create php webpages (see folder PHP for SQL Lab)
   - register.php
   - admin.php
 For our purposes we went with simply putting these files directly into the /var/www/html directory.
-Verify that necessary php modules are installed next time its tested i.e  libapache2-mod-php
+
 
