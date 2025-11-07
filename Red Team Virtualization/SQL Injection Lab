@@ -20,6 +20,32 @@ Create the followig php webpages (see folder PHP for SQL Lab)
   - login.php
   - register.php
   - admin.php
-For our purposes we went with simply putting these files directly into the /var/www/html directory.
+For our purposes we went with simply putting these files (with the exception of admin.php) directly into the /var/www/html directory.
+admin.php we will hide in a hidden directory, to do this simply use:
+sudo mkdir /.admin/
+Then move admin.php into this directory -> sudo mv admin.php /var/www/html/.admin/ 
+I like to use full path here, sometimes directory syntax can get funny even if you think you're in the proper directory already
+
+At this point our website should be all setup, we should be able to access it from our kali machine and see the various input forms.
+If you can't access it or run into blank php pages (only html is loading) some common things to troubleshoot are:
+
+    First and foremost:
+    Ensure apache2 and needed services are running, use systemctl
+
+    Firewall rules: 
+    (Ubuntu server uses ufw by default)
+    To check current rules: sudo ufw status
+    To allow port/service: sudo ufw allow 80/tcp
+    To reload and apply rules: sudo ufw reload (ufw is lenient with this, rules take effect upon change without reload but this is good practice as other firewalls i.e. firewall-cmd MUST be reloaded before rules take effect)
+    
+    Blank PHP pages:
+    This can be caused by various things, ensure php is enabled on your apache2: apache2ctl -M | grep "php"
+    Figure out whether the problem is on the php side or database side:
+    In my PHP for SQL Lab folder there is the test_db.php file, run this:
+    If it returns only starting test... --> your php is working but the database is not
+        * If this is the case then I recommend looking at the user you're trying to authenticate with, can check /var/log/apache2/error.log to verify
+    If you see connected successfully --> but query fails to return usernames, query is likely the problem
+
+At this point assuming the website is now completely operational we can begin enumeration using sqlmap or manually if you'd like
 
 
