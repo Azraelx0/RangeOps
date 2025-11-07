@@ -47,7 +47,6 @@
             <a href="search.php">Search Products</a>
             <a href="login.php">Login</a>
             <a href="register.php">Register</a>
-            <a href="admin.php">Admin Panel</a>
         </div>
     </div>
 </body>
