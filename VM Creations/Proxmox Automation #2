@@ -1,8 +1,10 @@
-# ============================================================================
 # Proxmox VM Deployment Script
 # Reads YAML course file and roster to deploy student VMs
 # ============================================================================
-# Note - Credentials removed
+
+# Note: Depending on Corsinvest version used, some commands may be different, resulting in a command not found error. This requires some roundabout ways of accomplishing some things.
+
+# Credentials removed, add user, host, and port as needed
 param(
     [Parameter(Mandatory=$false)]
     [string]$CourseFile,
@@ -11,13 +13,13 @@ param(
     [string]$RosterFile,
     
     [Parameter(Mandatory=$false)]
-    [string]$ProxmoxHost = "devops-nitrogen",
+    [string]$ProxmoxHost = "",
     
     [Parameter(Mandatory=$false)]
-    [int]$ProxmoxPort = 8006,
+    [int]$ProxmoxPort = ,
     
     [Parameter(Mandatory=$false)]
-    [string]$ProxmoxUser = "add user",
+    [string]$ProxmoxUser = "",
     
     [Parameter(Mandatory=$false)]
     [string]$ProxmoxPassword,
@@ -28,10 +30,7 @@ param(
 
 Import-Module Corsinvest.ProxmoxVE.Api -ErrorAction Stop
 
-# ============================================================================
-# Function: Parse YAML Course File
-# ============================================================================
-
+# Parse YAML course file
 function Get-CourseConfig {
     param([string]$YamlPath)
     
@@ -110,10 +109,7 @@ function Get-CourseConfig {
     return $config
 }
 
-# ============================================================================
-# Function: Find Template VMID by Name
-# ============================================================================
-
+# Find template VMID by name
 function Get-TemplateVMID {
     param(
         $Client,
@@ -147,10 +143,8 @@ function Get-TemplateVMID {
     }
 }
 
-# ============================================================================
-# Function: Read Roster and Extract Usernames
-# ============================================================================
 
+# Read roster and get usernames
 function Get-RosterStudents {
     param([string]$RosterPath)
     
@@ -189,9 +183,7 @@ function Get-RosterStudents {
     return $students
 }
 
-# ============================================================================
-# Function: Get Next Available VMID
-# ============================================================================
+# Get next available VMID (i.e if starting at 200 go sequentially)
 
 function Get-NextVMID {
     param(
@@ -212,9 +204,7 @@ function Get-NextVMID {
     }
 }
 
-# ============================================================================
 # Main Script
-# ============================================================================
 
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host "Proxmox VM Deployment" -ForegroundColor Cyan
