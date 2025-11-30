@@ -1,1 +1,2 @@
-
+# As we can see in our SQL injection lab, sql injection can be ridiculously easy.
+# So how do we prevent this? Input sanitization is essentially the root fix with varying sub-techniques (i.e. character stripping, prepared statements, etc.) to address the problem of sql injection
