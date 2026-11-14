@@ -9,7 +9,7 @@
     * General Tab
       - Select node (devops-nitrogen)
       - Select VM ID (1046)
-      - Select Name for VM (MercerWin2019)
+      - Select Name for VM (Win2019VM)
       - Select resource pool (Interns)
       - Click next
     * OS Tab

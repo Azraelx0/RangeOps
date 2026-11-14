@@ -10,7 +10,7 @@ default creds vyos/vyos
     * General Tab
       - Select node (devops-nitrogen)
       - Select VM ID (1078)
-      - Select Name for VM (MercerVyOS)
+      - Select Name for VM (VyOSVM)
       - Select resource pool (Interns)
       - Click next    
     * OS Tab
